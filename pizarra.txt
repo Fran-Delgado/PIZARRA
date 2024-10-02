@@ -1,19 +1,1 @@
-MPDT021           Cargada
-MPDT016           Cargada
-MPDT205           Cargada
-MPDT207           Cargada
-MPDT096           Cargada
-MPDT008           Cargada
-MPDT164           Cargada
-MPDT009           Cargada
-MPDT012           Cargada
-MPDT007           Cargada
-PEDT084           Cargada
-PEDT001           Cargada
-BGDTREF           Cargada
-TPT38_INTREFERE   Cargada
-
-BGDTMAE			  Pendiente
-BGDTREF			  Pendiente
-
 
