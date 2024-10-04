@@ -1,10 +1,1 @@
-En PRO tenemos:
-PARTENON:
-DOCUM_REING_SA
-GECH_FICH_REC
-RES_MX_MAE_CAR
-ALTAIR:
-LNDTMPB
- 
-Voy a ver el last change de todas en los dos entornos a ver si me da una pista..... 
- 
+
