@@ -1,3 +1,1275 @@
-CCERT_LJDTINL
-CCERT_OBDTFOL
-CCERT_MGDTAPL
+@@@LOJGDDDM
+GENERA MALLA DDM ENVIO DE GDG  SCHEDULE-PREV-DAY
+19:05h MEX
+
+------------------------------------------------------------------------------
+//*CTM9220* DATA ADDED BY CONTROL-M  - DO NOT CHANGE!
+//*CTM9220* SOURCE JCL LIB: ORG.GRISB.JCL.GRAVITY
+//*CTM9220* END OF DATA ADDED BY CONTROL-M
+//LOJGDDDM JOB (00000),'OBTTRANS',
+//             CLASS=0,
+//             MSGCLASS=X,
+//             MSGLEVEL=(1,1),
+//             TIME=1440
+//*
+//XX              JCLLIB ORDER=(ORG.GRISB.PROCLIB)
+//*
+//**********************************************************************
+//* ESTA ES LA LIBRERIA NUEVA DONDE SE ALOJARAN LOS JCLS DE LOS CLUSTER
+//* %%SET %%LIBCLUS = ORG.BTO.LR.LOJGDDDM.JCLS
+//*
+//* NUMERO DE PASOS POR JCL
+//* %%SET %%NUMPASO = 200
+//*
+//* ESTA ES LA LIBRERIA DONDE SE ALOJARA LA MALLA,ENVIO VERSIONES
+//* %%SET %%LIBRRIA = ORG.BTO.LR.LOJGDDDM.MALLA
+//*
+//* ESTE ES EL OWNER PARA RESPALDO DE LOS FICHEROS
+//* %%SET %%OW = GRNT
+//*
+//**********************************************************************
+//* ESTAS VARIABLES SE TIENEN QUE PASAR AL REXX FGFJGDG4
+//* DDNAME: NOMBRE DE LA LIBRERIA DONDE ALOJARA LA MALLA
+//* OWNER : OWNER QUE SE LE CAMBIARA AL ARCHIVO PARA EL RESPALDO
+//* TIPO  : TIPO DE FORMATO DE LOS ARCHIVOS A GENERAR 'GDG'
+//* NOMMALLA: NOMBRE DE LA MALLA A GENERAR
+//* NOMJCL : NOMBRE DEL JCL DINAMICO
+//*
+//**********************************************************************
+//** BORRA LOS ARCHIVOS DE TRABAJO                             **//
+//***************************************************************//
+//P001D010 EXEC PGM=IDCAMS
+//SYSPRINT DD  SYSOUT=*
+//SYSIN    DD  *
+  DELETE ORG.BTO.LR.LOJGDDDM.RESULT.SERCH
+  DELETE ORG.BTO.LR.LOJGDDDM.RESULT.ARCH
+  DELETE ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT
+  DELETE ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT.CAR
+  DELETE ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT.RECALL
+  DELETE ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT.SINVER
+  DELETE ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT.GDGSCA
+  DELETE ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT.GDGSENV
+  DELETE ORG.BTO.LR.LOJGDDDM.RESULT.GDGSENV.SRT
+  DELETE %%LIBRRIA
+  SET MAXCC=0
+//*********************************************************************
+//*  BUSCA TRANSMISIONES PUT                                          *
+//*********************************************************************
+//P002D010 EXEC PGM=ISRSUPC,PARM=(SRCHCMP,'ANYC'),COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//NEWDD    DD DSN=ORG.LO.LR.LOJPJCL9.JCL.D%%ODATE,DISP=SHR
+//         DD DSN=CICSG.JCLLIB.CTM,DISP=SHR
+//OUTDD    DD DSN=ORG.BTO.LR.LOJGDDDM.RESULT.SERCH,
+//            DISP=(NEW,CATLG,DELETE),
+//            UNIT=SYSALLDA,
+//            SPACE=(CYL,(100,50),RLSE)
+//*           DCB=(BLKSIZE=0,DSORG=PS,LRECL=150,RECFM=FB)
+//SYSIN    DD *
+SRCHFOR  '(0)'
+SRCHFOR  '(+1)'
+SRCHFOR  '(+2)'
+SRCHFOR  '(-1)'
+SRCHFOR  '(-2)'
+//*
+//***********************************************************
+//*OBJETIVO: HACE EL CAMBIO DEPLANES Y CREA MEMBERS
+//***********************************************************
+//P003D010 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//INDD      DD DSN=ORG.BTO.LR.LOJGDDDM.RESULT.SERCH,DISP=SHR
+//OUTDD     DD DSN=ORG.BTO.LR.LOJGDDDM.RESULT.ARCH,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=44,BLKSIZE=0,DSORG=PS)
+//SYSTSIN   DD *
+ LOJGDDD1
+//*********************************************************************
+//**                                                           **//
+//***************************************************************//
+//P004D010 EXEC PGM=SORT,REGION=64M,COND=(4,LT)
+//SYSOUT   DD SYSOUT=*
+//SYSPRINT DD SYSOUT=*
+//SORTIN   DD DISP=SHR,DSN=ORG.BTO.LR.LOJGDDDM.RESULT.ARCH
+//SORTOUT  DD DSN=ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT,
+//         DISP=(NEW,CATLG,DELETE),
+//         UNIT=3390,SPACE=(TRK,(500,500),RLSE),BUFNO=50,
+//         DCB=(RECFM=FB,LRECL=44,BLKSIZE=0,DSORG=PS)
+//SYSIN    DD *
+ SORT FIELDS=(1,44,CH,A)
+ SUM FIELDS=NONE
+ INCLUDE COND=(1,3,CH,NE,C'SIS')
+//***********************************************************
+//*OBJETIVO: HACE EL CAMBIO DEPLANES Y CREA MEMBERS
+//***********************************************************
+//P005D010 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//INDD      DD DSN=ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT,DISP=SHR
+//OUTDD     DD DSN=ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT.CAR,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=46,BLKSIZE=0,DSORG=PS)
+//OUTD2     DD DSN=ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT.RECALL,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=44,BLKSIZE=0,DSORG=PS)
+//OUTD3     DD DSN=ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT.SINVER,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=44,BLKSIZE=0,DSORG=PS)
+//OUTD4     DD DSN=ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT.GDGSCA,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=44,BLKSIZE=0,DSORG=PS)
+//OUTD5     DD DSN=ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT.GDGSENV,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=116,BLKSIZE=0,DSORG=PS)
+//SYSTSIN   DD *
+ LOJGDDD2
+//*
+//**********************************************************************
+//*   GENERA LIBRERIA PARA LOS JCLS DE CREACION DE CASCARON GDGS
+//**********************************************************************
+//P006D010 EXEC PGM=IEFBR14,COND=(4,LT)
+//DD1      DD DSN=%%LIBCLUS,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(100,100,100),RLSE),
+//            DCB=(LRECL=80,RECFM=FB,BLKSIZE=0,DSORG=PO)
+//**********************************************************************
+//*   GENRA JCLS CREACION DE CASCARON PARA GRAVITY
+//**********************************************************************
+//P007D010 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//INDD      DD DSN=ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT.CAR,DISP=SHR
+//SYSTSIN   DD *
+ LOJGDDD3 %%LIBCLUS %%NUMPASO
+//*********************************************************************
+//** ORGENA LAS VERSIONES DE GDGS PARA HACER EL ENVIO EN ESE ORDEN
+//*********************************************************************
+//P008D010 EXEC PGM=SORT,REGION=64M,COND=(4,LT)
+//SYSOUT   DD SYSOUT=*
+//SYSPRINT DD SYSOUT=*
+//SORTIN   DD DISP=SHR,DSN=ORG.BTO.LR.LOJGDDDM.RESULT.ARCHSRT.GDGSENV
+//SORTOUT  DD DSN=ORG.BTO.LR.LOJGDDDM.RESULT.GDGSENV.SRT,
+//         DISP=(NEW,CATLG,DELETE),
+//         UNIT=3390,SPACE=(TRK,(500,500),RLSE),BUFNO=50,
+//         DCB=(RECFM=FB,LRECL=104,BLKSIZE=0,DSORG=PS)
+//SYSIN    DD *
+ SORT FIELDS=(1,44,CH,A,103,2,CH,A)
+ INCLUDE COND=(94,3,CH,NE,C'   ')
+//***********************************************************
+//*   CREA LIBRERIA PARA GENERAR LAS MALLAS
+//***********************************************************
+//P009D010 EXEC PGM=IEFBR14,COND=(4,LT)
+//DD1      DD DSN=%%LIBRRIA,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(TRK,(1000,100,100),RLSE),
+//            DCB=(LRECL=80,RECFM=FB,BLKSIZE=0,DSORG=PO)
+//**********************************************************************
+//*OBJETIVO: GENERA MALLA PARA EL ENVIO DE ARCHIVOS A GRAVITY FM=FB
+//**********************************************************************
+//P010D010 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//INDD      DD DSN=ORG.BTO.LR.LOJGDDDM.RESULT.GDGSENV.SRT,DISP=SHR
+//SYSTSIN   DD *
+ LOJGDDD4 %%LIBRRIA %%OW GDG LOGDGDDM LOJGDGSV
+//*
+//*
+//* %%SET %%IODATE  = %%ODAY.%%OMONTH.%%OYEAR
+//**********************************************************************
+//*
+//* PLANIFICACION DE LAS MALLAS DEL DDM DIARIAS
+//*
+//**********************************************************************
+//ORDERJ01 EXEC CTMJOORG
+//SCH       DD DISP=SHR,DSN=ORG.BTO.LR.LOJGDDDM.MALLA
+//DAJOB     DD *
+  ORDER DD=SCH MEMBER=LOGDGDDM ODATE=%%IODATE FORCE
+------------------------------------------------------------------------------
+
+@@@LOJGFDDM
+OBTIENE FICHEROS PARA DDM   SCHEDULE-PREV-DAY
+05:59h MEX
+
+------------------------------------------------------------------------------
+//*CTM9220* DATA ADDED BY CONTROL-M  - DO NOT CHANGE!
+//*CTM9220* SOURCE JCL LIB: ORG.GRISB.JCL.GRAVITY
+//*CTM9220* END OF DATA ADDED BY CONTROL-M
+//LOJGFDDM JOB (00000),'OBTTRANS',
+//             CLASS=0,
+//             MSGCLASS=X,
+//             MSGLEVEL=(1,1),
+//             TIME=1440
+//*
+//XX              JCLLIB ORDER=(ORG.GRISB.PROCLIB)
+//*
+//**********************************************************************
+//** ESTA FECHA SE MODIFICA PARA TOMAR EL ODATE DE COMPARACION **//
+//* %%SET %%ODATE1 = %%$WCALC %%$ODATE -1 CDIARIO **//
+//* %%SET %%ODATE2 = %%SUBSTR %%ODATE1 3 6 **//
+//* %%SET %%FECHA  = %%ODATE2                                  **//
+//**                                                           **//
+//***************************************************************//
+//**********************************************************************
+//** BORRA LOS ARCHIVOS DE TRABAJO                             **//
+//***************************************************************//
+//P001D018 EXEC PGM=IDCAMS
+//SYSPRINT DD  SYSOUT=*
+//SYSIN    DD  *
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.SERCH
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCH
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCHSRT
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCHAST
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCHASX
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.BMCREG
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.BMCREG.UNI
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCMATC
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCNMAT
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.NEW
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.MOD
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.RES
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.NEWSRT
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.MODSRT
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.NEWMOD.MATCH
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.NEWMOD.NOMAT
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.NEWSR2
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.MODSR2
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.NEWMO2.MATCH
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.NEWMO2.NOMAT
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.UNICOS
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.UNICAR
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.NEWMOD.NEWANT
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.MIG
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.FB
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.FBA
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.VSAM
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.PO
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.CGDG
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.REST
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.VBA
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.F
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.V
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.VB
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.SCH.CISG
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.SCH.ORG
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.SCH.JCL
+  DELETE XALG.LO.BAT1SBAS.LOJGFDDM.JCLARCH
+  SET MAXCC=0
+//*********************************************************************
+//** BUSCA LOS CARACTERES, PASO, DSN Y DISPOSICION DE LOS FICHEROS   *
+//** EN LA O LAS LIBRARIAS DE JCLS, MODIFICAR LA DD NEWDD            *
+//*********************************************************************
+//P002D018 EXEC PGM=ISRSUPC,PARM=(SRCHCMP,'ANYC'),COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//NEWDD    DD DSN=ORG.LO.LR.LOJPJCL9.JCL.D%%ODATE,DISP=SHR
+//         DD DSN=CICSG.JCLLIB.CTM,DISP=SHR
+//OUTDD    DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.SERCH,
+//            DISP=(NEW,CATLG,DELETE),
+//            UNIT=SYSALLDA,
+//            SPACE=(CYL,(100,50),RLSE)
+//*           DCB=(BLKSIZE=0,DSORG=PS,LRECL=150,RECFM=FB)
+//SYSIN    DD *
+SRCHFOR  'DSN='
+SRCHFOR  'DISP='
+SRCHFOR  ' EXEC '
+//*
+//**********************************************************************
+//** GENERA UN REGISTRO POR CADA JCL, PASO, DSN Y DISPOSICION
+//**********************************************************************
+//P003D018 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//INDD      DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.SERCH,DISP=SHR
+//OUTDD     DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCH,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=100,BLKSIZE=0,DSORG=PS)
+//SYSTSIN   DD *
+ FGFFIL11
+//*
+//**********************************************************************
+//** HACE LA ELIMINACION DE DSN LIBRERIAS, SI AL FINAL SE DETECTAN
+//** SE PUEDE IR AGREGANDO PARA FUTURAS EJECUCIONES
+//**********************************************************************
+//P004D018 EXEC PGM=SORT,REGION=0M,COND=(4,LT)
+//SYSOUT   DD SYSOUT=*
+//SYSPRINT DD SYSOUT=*
+//SORTIN   DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCH,DISP=SHR
+//SORTOUT  DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCHSRT,
+//         DISP=(NEW,CATLG,DELETE),
+//         UNIT=3390,SPACE=(TRK,(500,500),RLSE),BUFNO=50,
+//         DCB=(RECFM=FB,LRECL=100,BLKSIZE=0,DSORG=PS)
+//SYSIN    DD *
+ SORT FIELDS=COPY
+ INCLUDE COND=(20,4,CH,NE,C'CICS',AND,
+               20,3,CH,NE,C'DB2',AND,
+               20,34,CH,NE,C'ISP.SISPTENU                      ',AND,
+               20,1,CH,NE,C'&',AND,
+               20,7,CH,NE,C'ORG.GRI',AND,
+               20,7,CH,NE,C'ORG.GRO',AND,
+               20,4,CH,NE,C'BMC.',AND,
+               20,3,CH,NE,C'MIG',AND,
+               20,5,CH,NE,C'INTGR',AND,
+               20,4,CH,NE,C'ARQ.',AND,
+               20,4,CH,NE,C'SIS.',AND,
+               20,5,CH,NE,C'SYS1.',AND,
+               20,5,CH,NE,C'BKUP.',AND,
+               20,5,CH,NE,C'DFRMM',AND,
+               20,4,CH,NE,C'QMF.',AND,
+               20,4,CH,NE,C'DB0G',AND,
+               20,4,CH,NE,C'COZ.',AND,
+               20,4,CH,NE,C'SMF.',AND,
+               20,4,CH,NE,C'MQM.',AND,
+               20,4,CH,NE,C'IOA.',AND,
+               20,3,CH,NE,C'ISP',AND,
+               20,3,CH,NE,C'SYS',AND,
+               20,6,CH,NE,C'ZIP390',AND,
+               20,7,CH,NE,C'QMFLIB.',AND,
+               20,7,CH,NE,C'QMF710.',AND,
+               20,1,CH,NE,C'C',AND,
+               20,7,CH,NE,C'DSNDB0G',AND,
+               20,8,CH,NE,C'PUENTEPN',AND,
+               20,3,CH,NE,C'SIS',AND,
+               20,7,CH,NE,C'BOPMAMG',AND,
+               20,8,CH,NE,C'DBCOPYP.',AND,
+               20,5,CH,NE,C'DB0P.',AND,
+               20,5,CH,NE,C'EREP.',AND,
+               20,10,CH,NE,C'ORG.GRORG.',AND,
+               20,7,CH,NE,C'EXPLIB.',AND,
+               20,4,CH,NE,C'IGY.',AND,
+               20,9,CH,NE,C'MICROFOC.',AND,
+               20,6,CH,NE,C'P1RCH.',AND,
+               20,8,CH,NE,C'SERCOMC.',AND,
+               20,4,CH,NE,C'NDM.')
+//*
+//**********************************************************************
+//* HACE EL CAMBIO DE VARIABLES EN EL NOMBRE DEL DSN POR UN ESTERISCO(*)
+//**********************************************************************
+//P005D018 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//INDD      DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCHSRT,DISP=SHR
+//OUTDD     DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCHAST,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=100,BLKSIZE=0,DSORG=PS)
+//SYSTSIN   DD *
+ FGFFIL12
+//*
+//**********************************************************************
+//* PASA SCHEDULE CICSG A SEQ
+//**********************************************************************
+//P006D00X EXEC PGM=IEBPTPCH,COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSUT1   DD DISP=SHR,DSN=CICSG.SCHEDULE.CTM
+//SYSUT2   DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.SCH.CISG,
+//         DISP=(,CATLG),
+//         UNIT=SYSALLDA,
+//         SPACE=(CYL,(100,10),RLSE),
+//         DCB=(LRECL=81,BLKSIZE=0,DSORG=PS,RECFM=FB)
+//SYSIN    DD *
+  PUNCH MAXFLDS=1,TYPORG=PO
+  RECORD FIELD=(80)
+//*
+//**********************************************************************
+//* PASA SCHEDULE CICSG A SEQ
+//**********************************************************************
+//P007D00X EXEC PGM=IEBPTPCH,COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSUT1   DD DISP=SHR,DSN=ORG.GRISB.SCHEDULE
+//SYSUT2   DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.SCH.ORG,
+//         DISP=(,CATLG),
+//         UNIT=SYSALLDA,
+//         SPACE=(CYL,(100,10),RLSE),
+//         DCB=(LRECL=81,BLKSIZE=0,DSORG=PS,RECFM=FB)
+//SYSIN    DD *
+  PUNCH MAXFLDS=1,TYPORG=PO
+  RECORD FIELD=(80)
+//*
+//**********************************************************************
+//** SOLO OBTIENEN LOS JCLS QUE ESTA EN PLANIFICACION
+//**********************************************************************
+//P008D00X EXEC PGM=SORT,COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DISP=SHR,DSN=XALG.LO.BAT1SBAS.LOJGFDDM.SCH.CISG
+//         DD DISP=SHR,DSN=XALG.LO.BAT1SBAS.LOJGFDDM.SCH.ORG
+//SORTOUT  DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.SCH.JCL,
+//            SPACE=(CYL,(100,100),RLSE),
+//            DCB=(RECFM=FB,LRECL=8,BLKSIZE=0,DSORG=PS),
+//            DISP=(,CATLG,DELETE)
+//SYSIN    DD *
+  SORT FIELDS=(3,8,CH,A)
+  SUM FIELDS=NONE
+  INCLUDE COND=(2,1,CH,EQ,C'M')
+  OUTREC FIELDS=(3,8)
+//*
+//**********************************************************************
+//** MATCH PARA OBTENER FECHA Y HORA DE EJECUCION DEL JOB, SE LO AGREGA
+//** AL FINAL A CADA FICHERO
+//**********************************************************************
+//P009D018 EXEC  PGM=ICETOOL,COND=(4,LT)
+//JNF1     DD DISP=SHR,DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCHAST
+//JNF2     DD DISP=SHR,DSN=XALG.LO.BAT1SBAS.LOJGFDDM.SCH.JCL
+//SALIDA1  DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCHASX,
+//            DISP=(,CATLG,CATLG),
+//            SPACE=(TRK,(100,100),RLSE),
+//            DCB=(RECFM=FB,LRECL=100,BLKSIZE=0,DSORG=PS)
+//TOOLMSG  DD  SYSOUT=*
+//DFSMSG   DD  SYSOUT=*
+//TOOLIN   DD  *
+  SORT JKFROM TO(SALIDA1) USING(OU01)
+//OU01CNTL DD  *
+  JOINKEYS F1=JNF1,FIELDS=(1,8,A)
+  JOINKEYS F2=JNF2,FIELDS=(1,8,A)
+  REFORMAT FIELDS=(F1:1,100)
+  OPTION COPY
+  OUTFIL FNAMES=SALIDA1,
+  BUILD=(1,100)
+//**********************************************************************
+//** OBTIENE LOS REGISTROS DE FIN DE EJECUCION DEL LOG DE CONTROL-M
+//** SE DEBE DE MODIFICAR LA DD SORTIN PARA PONER EL ARCHIVO DE CADA
+//** PAIS-AMBIENTE
+//**********************************************************************
+//P006D018 EXEC PGM=SORT,COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DSN=BMC.IOA.MXG1.LOG,DISP=SHR
+//SORTOUT  DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.BMCREG,
+//            SPACE=(CYL,(100,100),RLSE),
+//            DCB=(RECFM=FB,LRECL=20,BLKSIZE=0,DSORG=PS),
+//            DISP=(,CATLG,DELETE)
+//SYSIN    DD *
+  SORT FIELDS=(64,8,CH,A,8,12,CH,A)
+  SUM FIELDS=NONE
+  INCLUDE COND=(36,7,CH,EQ,C'SPY281I',AND,(63,1,CH,EQ,C'J',OR,
+                63,1,CH,EQ,C'X',OR,63,1,CH,EQ,C'C'),AND,
+               (20,6,CH,EQ,C'%%FECHA'))
+     OUTREC FIELDS=(8,12,64,8)
+//*
+//**********************************************************************
+//** OBTIENE EL PRIMER REGISTRO DE EJECICION DE CADA PROCESO
+//**********************************************************************
+//P007D018 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//INDD      DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.BMCREG,DISP=SHR
+//OUTDD     DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.BMCREG.UNI,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=20,BLKSIZE=0,DSORG=PS)
+//SYSTSIN   DD *
+ FGFFIL13
+//*
+//**********************************************************************
+//** MATCH PARA OBTENER FECHA Y HORA DE EJECUCION DEL JOB, SE LO AGREGA
+//** AL FINAL A CADA FICHERO
+//**********************************************************************
+//P008D018 EXEC  PGM=ICETOOL,COND=(4,LT)
+//JNF1     DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCHASX,DISP=SHR
+//JNF2     DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.BMCREG.UNI,DISP=SHR
+//SALIDA1  DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCMATC,
+//            DISP=(,CATLG,CATLG),
+//            SPACE=(TRK,(100,100),RLSE),
+//            DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS)
+//SALIDA2  DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCNMAT,
+//            DISP=(,CATLG,CATLG),
+//            SPACE=(TRK,(100,100),RLSE),
+//            DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS)
+//TOOLMSG  DD  SYSOUT=*
+//DFSMSG   DD  SYSOUT=*
+//TOOLIN   DD  *
+  SORT JKFROM TO(SALIDA1) USING(OU01)
+  SORT JKFROM TO(SALIDA2) USING(OU02)
+//OU01CNTL DD  *
+  JOINKEYS F1=JNF1,FIELDS=(1,8,A)
+  JOINKEYS F2=JNF2,FIELDS=(13,8,A)
+  REFORMAT FIELDS=(F1:1,100,F2:1,12)
+  OPTION COPY
+  OUTFIL FNAMES=SALIDA1,
+  BUILD=(1,112)
+//OU02CNTL DD  *
+  JOINKEYS F1=JNF1,FIELDS=(1,8,A)
+  JOINKEYS F2=JNF2,FIELDS=(13,8,A)
+  JOIN UNPAIRED,F1,ONLY
+  REFORMAT FIELDS=(F1:1,100)
+  OPTION COPY
+  OUTFIL FNAMES=SALIDA2,
+  BUILD=(1,100,C'999999999999')
+//*
+//**********************************************************************
+//* SEPARA LOS ARCHIVOS EN NUEVOS Y EXISTENTES, EL TERCER ARCHIVO DE
+//* SALIDA DEJA LAS DISPOSICIONES NO UBICADAS, SI SON VALIDAS SE PUEDEN
+//* AGREGAR EN EL SYSIN.
+//**********************************************************************
+//P009D018 EXEC PGM=SORT,COND=(4,LT)
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DISP=SHR,DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCMATC
+//         DD DISP=SHR,DSN=XALG.LO.BAT1SBAS.LOJGFDDM.RESULT.ARCNMAT
+//SORTOUT1 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.NEW,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS)
+//SORTOUT2 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.MOD,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS)
+//SORTOUT3 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.RES,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS)
+//SYSIN    DD *
+ OPTION VLSHRT
+ SORT FIELDS=COPY
+ OUTFIL FNAMES=SORTOUT1,INCLUDE=(70,3,CH,EQ,C'NEW',OR,
+                                 70,4,CH,EQ,C'MOD,',OR,
+                                 70,1,CH,EQ,C',')
+ OUTFIL FNAMES=SORTOUT2,INCLUDE=(70,3,CH,EQ,C'SHR',OR,
+                                 70,4,CH,EQ,C'MOD ',OR,
+                                 70,3,CH,EQ,C'OLD')
+ OUTFIL FNAMES=SORTOUT3,INCLUDE=(70,3,CH,NE,C'NEW',AND,
+                                 70,1,CH,NE,C',',AND,
+                                 70,3,CH,NE,C'SHR',AND,
+                                 70,3,CH,NE,C'MOD',AND,
+                                 70,3,CH,NE,C'OLD')
+//*
+//**********************************************************************
+//** SE ORDENA ARCHIVO DE DSN'S NUEVOS POR JCL, DSN Y # DE PASO
+//**********************************************************************
+//*
+//P010D018 EXEC PGM=SORT,COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.NEW,DISP=SHR
+//SORTOUT  DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.NEWSRT,
+//            SPACE=(CYL,(100,100),RLSE),
+//            DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS),
+//            DISP=(,CATLG,DELETE)
+//SYSIN    DD *
+  SORT FIELDS=(1,8,CH,A,20,50,CH,A,17,03,CH,A)
+  SUM FIELDS=NONE
+//*
+//********************************************************************
+//** SE ORDENA ARCHIVO DE DSN'S EXISTENTES POR JCL, DSN Y # DE PASO
+//********************************************************************
+//*
+//P011D018 EXEC PGM=SORT,COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.MOD,DISP=SHR
+//SORTOUT  DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.MODSRT,
+//            SPACE=(CYL,(100,100),RLSE),
+//            DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS),
+//            DISP=(,CATLG,DELETE)
+//SYSIN    DD *
+  SORT FIELDS=(1,8,CH,A,20,50,CH,A,17,03,CH,A)
+  SUM FIELDS=NONE
+//*
+//**********************************************************************
+//** MATCH ENTRE DSN'S NUEVOS VS EXISTENTES,DESCARTA LOS DSN'S EXISTEN.
+//** QUE SE CREAN EN EL MISMO JOB PASOS ANTERIORES.
+//** NUESTRA BASE SIEMPRE SON LOS EXISTENTES PARA ENVIO DEL PRIMER DIA
+//**********************************************************************
+//P012D018 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//IND1      DD DISP=SHR,DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.NEWSRT
+//IND2      DD DISP=SHR,DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.MODSRT
+//OUTD1     DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.NEWMOD.MATCH,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS)
+//OUTD2     DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.NEWMOD.NOMAT,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS)
+//OUTD3     DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.NEWMOD.NEWANT,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS)
+//SYSTSIN   DD *
+ FGFFIL15
+//*
+//**********************************************************************
+//** ORDENA ARCHIVOS DSN'S NUEVOS POR DSN Y FECHA-HORA
+//**********************************************************************
+//P013D018 EXEC PGM=SORT,COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.NEW,DISP=SHR
+//SORTOUT  DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.NEWSR2,
+//            SPACE=(CYL,(100,100),RLSE),
+//            DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS),
+//            DISP=(,CATLG,DELETE)
+//SYSIN    DD *
+  SORT FIELDS=(20,50,CH,A,101,12,CH,A)
+  SUM FIELDS=NONE
+//*
+//**********************************************************************
+//** ORDENA ARCHIVO DSN'S EXISTENTES POR DSN Y FECHA-HORA
+//**********************************************************************
+//P014D018 EXEC PGM=SORT,COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.NEWMOD.NOMAT,DISP=SHR
+//SORTOUT  DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.MODSR2,
+//            SPACE=(CYL,(100,100),RLSE),
+//            DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS),
+//            DISP=(,CATLG,DELETE)
+//SYSIN    DD *
+  SORT FIELDS=(20,50,CH,A,101,12,CH,A)
+  SUM FIELDS=NONE
+//*
+//**********************************************************************
+//** MATCH DSN'S NUEVOS VS EXISTENTES, OBTIENE SOLO LOS DSN'S QUE NO
+//** SE GENERAN ANTES EN LA LINEA DE TIEMPO DE EJECUCIONES.
+//** SI EL DSN EXISTENTE NO EXISTE EN NUEVOS LO ENVIA A PRIMERA VEZ.
+//** SI EL DSN EXISTENTE SE UTILIZA ANTES DE QUE SE CREA LO ENVIA PV.
+//**********************************************************************
+//P015D018 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//IND1      DD DISP=SHR,DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.NEWSR2
+//IND2      DD DISP=SHR,DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.MODSR2
+//OUTD1     DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.NEWMO2.MATCH,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS)
+//OUTD2     DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.NEWMO2.NOMAT,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=112,BLKSIZE=0,DSORG=PS)
+//SYSTSIN   DD *
+ FGFFIL16
+//*
+//**********************************************************************
+//** ORDENA EL RESULTADO POR DSN Y ELIMINA DUPLICADOS
+//**********************************************************************
+//P016D00X EXEC PGM=SORT,COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.NEWMO2.NOMAT,DISP=SHR
+//         DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.NEWMOD.NEWANT,DISP=SHR
+//SORTOUT  DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.JCLARCH,
+//            SPACE=(CYL,(100,100),RLSE),
+//            DCB=(RECFM=FB,LRECL=69,BLKSIZE=0,DSORG=PS),
+//            DISP=(,CATLG,DELETE)
+//SYSIN    DD *
+  SORT FIELDS=COPY
+  OUTREC FIELDS=(1,69)
+//*
+//**********************************************************************
+//** ORDENA EL RESULTADO POR DSN Y ELIMINA DUPLICADOS
+//**********************************************************************
+//P016D018 EXEC PGM=SORT,COND=(4,LT)
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.NEWMO2.NOMAT,DISP=SHR
+//         DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.NEWMOD.NEWANT,DISP=SHR
+//SORTOUT  DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.UNICOS,
+//            SPACE=(CYL,(100,100),RLSE),
+//            DCB=(RECFM=FB,LRECL=44,BLKSIZE=0,DSORG=PS),
+//            DISP=(,CATLG,DELETE)
+//SYSIN    DD *
+  SORT FIELDS=(20,44,CH,A)
+  SUM FIELDS=NONE
+  INCLUDE COND=(20,2,CH,NE,C'* ')
+  OUTREC FIELDS=(20,44)
+//*
+//**********************************************************************
+//** OBTIENE LAS CARACTERISTICAS DE LOS DSN'S
+//**********************************************************************
+//P017D018 EXEC PGM=IKJEFT1A,REGION=4096K
+//ISPPLIB   DD DSN=ISP.SISPSLIB,DISP=SHR
+//ISPMLIB   DD DSN=ISP.SISPMENU,DISP=SHR
+//ISPSLIB   DD DSN=ISP.SISPSLIB,DISP=SHR
+//ISPTLIB   DD DSN=ISP.SISPTENU,DISP=SHR
+//ISPPROF   DD UNIT=SYSDA,SPACE=(TRK,(9,1,4)),
+//             DCB=(LRECL=80,BLKSIZE=8800,RECFM=FB,DSORG=PO)
+//INDD      DD DISP=SHR,DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.UNICOS
+//OUTDD     DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.UNICAR,
+//             DISP=(,CATLG,DELETE),
+//             SPACE=(TRK,(200,150),RLSE),
+//             DCB=(RECFM=FB,LRECL=140,BLKSIZE=0,DSORG=PS)
+//SYSPROC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSPRINT  DD SYSOUT=*
+//SYSTSPRT  DD SYSOUT=*
+//SYSIN     DD DUMMY
+//SYSTSIN   DD *
+ PROFILE  NOPREFIX
+ ISPSTART CMD(%FGFFIL14 CTMMXG1)
+//* SOLO PARA PRE EL OWNER DEBE SER FIJO CTMMXG1 Y PARA PRO CON VARIABLE
+//* ISPSTART CMD(%FGFFIL14 %%OWNER)
+//**********************************************************************
+//* DIVIDE EL RESULTADO EN TIPO DE FICHERO
+//**********************************************************************
+//P018D018 EXEC PGM=SORT,COND=(4,LT)
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DISP=SHR,DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.UNICAR
+//SORTOUT1 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.MIG,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=140,BLKSIZE=0,DSORG=PS)
+//SORTOUT2 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.FB,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=140,BLKSIZE=0,DSORG=PS)
+//SORTOUT3 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.FBA,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=140,BLKSIZE=0,DSORG=PS)
+//SORTOUT4 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.VSAM,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=140,BLKSIZE=0,DSORG=PS)
+//SORTOUT5 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.PO,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=140,BLKSIZE=0,DSORG=PS)
+//SORTOUT6 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.CGDG,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=140,BLKSIZE=0,DSORG=PS)
+//SORTOUT7 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.VBA,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=140,BLKSIZE=0,DSORG=PS)
+//SORTOUT8 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.F,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=140,BLKSIZE=0,DSORG=PS)
+//SORTOUT9 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.V,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=140,BLKSIZE=0,DSORG=PS)
+//SORTOU10 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.VB,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=140,BLKSIZE=0,DSORG=PS)
+//SORTOU11 DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.REST,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(CYL,(200,150),RLSE),
+//            DCB=(RECFM=FB,LRECL=140,BLKSIZE=0,DSORG=PS)
+//SYSIN    DD *
+ OPTION VLSHRT
+ SORT FIELDS=(76,12,CH,A)
+ INCLUDE COND=(1,5,CH,NE,C'GRNT.')
+ OUTFIL FNAMES=SORTOUT1,INCLUDE=(46,6,CH,EQ,C'MIGRAT')
+ OUTFIL FNAMES=SORTOUT2,INCLUDE=(58,3,CH,EQ,C'FB ',AND,
+                                 53,2,CH,EQ,C'PS')
+ OUTFIL FNAMES=SORTOUT3,INCLUDE=(58,3,CH,EQ,C'FBA')
+ OUTFIL FNAMES=SORTOUT4,INCLUDE=(53,2,CH,EQ,C'VS')
+ OUTFIL FNAMES=SORTOUT5,INCLUDE=(53,2,CH,EQ,C'PO')
+ OUTFIL FNAMES=SORTOUT6,INCLUDE=(46,6,CH,EQ,C'??????')
+ OUTFIL FNAMES=SORTOUT7,INCLUDE=(58,3,CH,EQ,C'VBA')
+ OUTFIL FNAMES=SORTOUT8,INCLUDE=(58,3,CH,EQ,C'F  ')
+ OUTFIL FNAMES=SORTOUT9,INCLUDE=(58,3,CH,EQ,C'V  ')
+ OUTFIL FNAMES=SORTOU10,INCLUDE=(58,3,CH,EQ,C'VB ')
+ OUTFIL FNAMES=SORTOU11,INCLUDE=(46,6,CH,NE,C'MIGRAT',AND,
+                                 58,3,CH,NE,C'FB ',AND,
+                                 58,3,CH,NE,C'FBA',AND,
+                                 53,2,CH,NE,C'VS',AND,
+                                 53,2,CH,NE,C'PO',AND,
+                                 46,6,CH,NE,C'??????',AND,
+                                 58,3,CH,NE,C'VBA',AND,
+                                 58,3,CH,NE,C'F  ',AND,
+                                 58,3,CH,NE,C'V  ',AND,
+                                 58,3,CH,NE,C'VB ')
+//
+------------------------------------------------------------------------------
+
+@@@LOJLANZD
+JOB LANZADOR DDM DIARIO         SCHEDULE-PREV-DAYDE LUNES A VIERNES
+05:59h MEX
+
+------------------------------------------------------------------------------
+//*CTM9220* DATA ADDED BY CONTROL-M  - DO NOT CHANGE!
+//*CTM9220* SOURCE JCL LIB: ORG.GRISB.JCL.GRAVITY
+//*CTM9220* END OF DATA ADDED BY CONTROL-M
+//LOJLANZD JOB (D,DES),CLASS=0,MSGCLASS=X,MSGLEVEL=(1,1),
+//             REGION=0M
+//*
+//* %%INCLIB ORG.GRISB.AUTOEDIT %%INCMEM JOBLIB
+//*
+//PROCLIB  JCLLIB ORDER=(ORG.GRISB.PROCLIB)
+//*
+//* %%SET %%IODATE  = %%ODAY.%%OMONTH.%%OYEAR
+//**********************************************************************
+//*
+//* PLANIFICACION DE LAS MALLAS DEL DDM DIARIAS
+//*
+//**********************************************************************
+//ORDERJ01 EXEC CTMJOORG,COND=(0,NE)
+//SCH       DD DISP=SHR,DSN=ORG.GRISB.SCHEDULE.GRAVITY.INC
+//DAJOB     DD *
+  ORDER DD=SCH MEMBER=UWALFBD  ODATE=%%IODATE FORCE
+  ORDER DD=SCH MEMBER=UWALVBD  ODATE=%%IODATE FORCE
+  ORDER DD=SCH MEMBER=UWPRFBD  ODATE=%%IODATE FORCE
+  ORDER DD=SCH MEMBER=UWPRVBD  ODATE=%%IODATE FORCE
+  ORDER DD=SCH MEMBER=LWALFBD  ODATE=%%IODATE FORCE
+  ORDER DD=SCH MEMBER=LWALVBD  ODATE=%%IODATE FORCE
+  ORDER DD=SCH MEMBER=LWPRFBD  ODATE=%%IODATE FORCE
+  ORDER DD=SCH MEMBER=LWPRVBD  ODATE=%%IODATE FORCE
+  ORDER DD=SCH MEMBER=UWALTLB  ODATE=%%IODATE FORCE
+  ORDER DD=SCH MEMBER=UWPRTLB  ODATE=%%IODATE FORCE
+  ORDER DD=SCH MEMBER=LOVSMDDM ODATE=%%IODATE FORCE
+//*
+------------------------------------------------------------------------------
+
+@@@LOJSLDDM
+GENERA SCHEDULE PARA DDM    SCHEDULE-PREV-DAY
+Una vez finalizado LOJGFDDM-OK
+
+------------------------------------------------------------------------------
+//*CTM9220* DATA ADDED BY CONTROL-M  - DO NOT CHANGE!
+//*CTM9220* SOURCE JCL LIB: ORG.GRISB.JCL.GRAVITY
+//*CTM9220* END OF DATA ADDED BY CONTROL-M
+//LOJSLDDM JOB (00000),'OBTTRANS',
+//             CLASS=0,
+//             MSGCLASS=X,
+//             MSGLEVEL=(1,1),
+//             TIME=1440
+//*
+//XX              JCLLIB ORDER=(ORG.GRISB.PROCLIB)
+//*
+//**********************************************************************
+//* LIBRERIA NUEVA PARA ALOJAR LAS MALLAS
+//* %%SET %%LIBRRIA = XALG.LO.BAT1SBAS.LOJSLDDM.MALLA
+//*
+//* OWNER DE RESPALDO
+//* %%SET %%OW = GRNT
+//*
+//**********************************************************************
+//* ESTAS VARIABLES SE TIENEN QUE PASAR AL REXX LORFILES
+//* DDNAME: NOMBRE DE LA LIBRERIA DONDE ALOJARA LA MALLA
+//* OWNER : OWNER QUE SE LE CAMBIARA AL ARCHIVO PARA EL RESPALDO
+//* TIPO  : TIPO DE FORMATO DE LOS ARCHIVOS A GENERAR
+//* NOMMALLA: NOMBRE DE LA MALLA A GENERAR
+//* NOMJCL : NOMBRE DEL JCL DINAMICO
+//***************************************************************//
+//**********************************************************************
+//** BORRA LOS ARCHIVOS DE TRABAJO                             **//
+//***************************************************************//
+//P001D007 EXEC PGM=IDCAMS
+//SYSPRINT DD  SYSOUT=*
+//SYSIN    DD  *
+  DELETE %%LIBRRIA
+  SET MAXCC=0
+//***********************************************************
+//*   CREA LIBRERIA PARA GENERAR LAS MALLAS
+//***********************************************************
+//P002D007 EXEC PGM=IEFBR14,COND=(4,LT)
+//DD1      DD DSN=%%LIBRRIA,
+//            DISP=(,CATLG,DELETE),
+//            SPACE=(TRK,(1000,100,100),RLSE),
+//            DCB=(LRECL=80,RECFM=FB,BLKSIZE=0,DSORG=PO)
+//**********************************************************************
+//*OBJETIVO: GENERA MALLA PARA EL ENVIO DE ARCHIVOS A GRAVITY FM=FB
+//**********************************************************************
+//P003D007 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//INDD      DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.FB,DISP=SHR
+//SYSTSIN   DD *
+ LORFILE1 %%LIBRRIA %%OW FB LOFILEFB LOJPFLFB
+//*
+//**********************************************************************
+//*OBJETIVO: GENERA MALLA PARA EL ENVIO DE ARCHIVOS A GRAVITY FM=F
+//**********************************************************************
+//P004D007 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//INDD      DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.F,DISP=SHR
+//SYSTSIN   DD *
+ LORFILE1 %%LIBRRIA %%OW F  LOFILE0F LOJPFL0F
+//*
+//**********************************************************************
+//*OBJETIVO: GENERA MALLA PARA EL ENVIO DE ARCHIVOS A GRAVITY FM=FBA
+//**********************************************************************
+//P005D007 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//INDD      DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.FBA,DISP=SHR
+//SYSTSIN   DD *
+ LORFILE1 %%LIBRRIA %%OW FBA LOFILFBA LOJPFFBA
+//*
+//**********************************************************************
+//*OBJETIVO: GENERA MALLA PARA EL ENVIO DE ARCHIVOS A GRAVITY FM=V
+//**********************************************************************
+//P006D007 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//INDD      DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.V,DISP=SHR
+//SYSTSIN   DD *
+ LORFILE1 %%LIBRRIA %%OW V LOFILE0V LOJPFL0V
+//*
+//**********************************************************************
+//*OBJETIVO: GENERA MALLA PARA EL ENVIO DE ARCHIVOS A GRAVITY FM=VBA
+//**********************************************************************
+//P007D007 EXEC PGM=IKJEFT1A,COND=(4,LT),
+//             DYNAMNBR=150
+//SYSEXEC   DD DSN=ORG.GRISB.REXX,DISP=SHR
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//INDD      DD DSN=XALG.LO.BAT1SBAS.LOJGFDDM.ARCHI.VBA,DISP=SHR
+//SYSTSIN   DD *
+ LORFILE1 %%LIBRRIA %%OW VBA LOFILVBA LOJPFVBA
+//*
+//*********************************************************************
+//*
+//* %%SET %%IODATE  = %%ODAY.%%OMONTH.%%OYEAR
+//**********************************************************************
+//*
+//* PLANIFICACION DE LAS MALLAS DEL DDM DIARIAS
+//*
+//**********************************************************************
+//ORDERJ01 EXEC CTMJOORG,COND=(0,NE)
+//SCH       DD DISP=SHR,DSN=XALG.LO.BAT1SBAS.LOJSLDDM.MALLA
+//DAJOB     DD *
+  ORDER DD=SCH MEMBER=LOFILEFB ODATE=%%IODATE FORCE
+  ORDER DD=SCH MEMBER=LOFILE0F ODATE=%%IODATE FORCE
+  ORDER DD=SCH MEMBER=LOFILFBA ODATE=%%IODATE FORCE
+  ORDER DD=SCH MEMBER=LOFILVBA ODATE=%%IODATE FORCE
+
+------------------------------------------------------------------------------
+
+@@@SEQUENCE
+Una vez finalizadas las descargas.
+Proceso de extracción de info de secuencias.
+
+
+------------------------------------------------------------------------------
+//*CTM9220* DATA ADDED BY CONTROL-M  - DO NOT CHANGE!
+//*CTM9220* SOURCE JCL LIB: ORG.GRISB.JCL.GRAVITY
+//*CTM9220* END OF DATA ADDED BY CONTROL-M
+//SEQUENCE JOB 101,'RENAME FIC.',REGION=0M,
+//         MSGLEVEL=(1,1),MSGCLASS=X,CLASS=0
+//*
+//* ************************************************** *
+//* %%INCLIB CICSG.PARAMLIB.CTM %%INCMEM INCGLOB
+//* %%LIBSYM CICSG.PARAMLIB.CTM %%MEMSYM GLOBALA
+//* ************************************************** *
+//JOBLIB   DD  DSN=CICSG.PGMBATCH,
+//             DISP=SHR
+//*   %%INCLIB CICSG.PROCLIB %%INCMEM LIBPARTE
+//*
+//*
+//REPOSIT  JCLLIB ORDER=CICSG.PROCLIB.PROD
+//*
+//**********************************************************************
+//*
+//*  %%SET %%FECH2 = %%$OYEAR-%%OMONTH-%%ODAY
+//*  %%SET %%FECHA = %%$OYEAR-%%OMONTH-%%ODAY
+//*   %%SET %%FEC = %%$WCALC %%$ODATE -1 ALLDAYS
+//*   %%SET %%AA = %%SUBSTR %%FEC 1 4
+//*   %%SET %%MM = %%SUBSTR %%FEC 5 2
+//*   %%SET %%DD = %%SUBSTR %%FEC 7 2
+//******************************************************************
+//* ENCUENTRA MODIF A TABLAS ENTRE EL TS INICIAL INDICADO
+//*  Y EL TS FIN GRABADO EN LAS RTS DEL DB2
+//* CON LO CUAL HAY QUE ESPERAR QUE SE VUELQUEN DICHAS RTS
+//*   PARA PASAR POSTERIORMENTE UN SNAPSHOT DE ELLAS
+//******************************************************************
+//* TAMBIEN RECOGE MODIFICACIONES (LOAD / RECOVER )
+//*   GRABADAS EN LA SYSCOPY
+//******************************************************************
+//**
+//DELETE   EXEC PGM=IDCAMS
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DEL ORG.BTO.LR.GRVTY.SEQUENCE.PRE.F%%ODATE
+  DEL ORG.DB2.MXG.SEQUENCE.L1.D%%ODATE
+  SET MAXCC = 0
+  SET LASTCC = 0
+/*
+//********************************************************************
+//UNLOAD EXEC PGM=ADUUMAIN,
+//         PARM=(DB0G,'%%JOBNAME','NEW')
+//STEPLIB  DD DSN=BMC.MXG1.LOAD,DISP=SHR
+//SYSUDUMP DD SYSOUT=*
+//SYSPRINT DD SYSOUT=*
+//UTPRINT  DD SYSOUT=*
+//SYSREC   DD DSN=ORG.BTO.LR.GRVTY.SEQUENCE.PRE.F%%ODATE,
+//            UNIT=SYSDA,
+//            SPACE=(TRK,(10,16),RLSE),
+//            DISP=(NEW,CATLG,DELETE)
+//SYSCNTL  DD DUMMY
+//SYSIN    DD   *
+ UNLOAD DIRECT NO
+   FORMAT CSV TERMINATEDBY ';' ENCLOSEDBY '' AND '' NULLSTRING ''
+   UNLOADDN SYSREC ACTIVE NO
+   CNTLCARDS
+   SELECT    SUBSTR(SCHEMA, 1, 10) AS SCHEMA
+           , SUBSTR(NAME, 1, 30) AS NAME
+           , SUBSTR(SEQTYPE, 1, 1) AS SEQTYPE
+           , INCREMENT   AS INCREMENT
+           , START       AS START
+          , MAXVALUE    AS MAXVALUE
+          , MINVALUE    AS MINVALUE
+          , SUBSTR(CYCLE, 1, 1) AS CYCLE
+          , SUBSTR(ORDER, 1, 1) AS ORDER
+          , CACHE       AS CACHE
+          , MAXASSIGNEDVAL  AS  MAXASSIGNEDVAL
+  FROM SYSIBM.SYSSEQUENCES
+  WHERE SCHEMA  IN ('CICSG','ORGADM')
+  ORDER BY NAME
+WITH UR
+/*
+//*
+//MEMO01 EXEC PGM=XX0MEMO,COND=(0,NE)
+//SYSOUT   DD SYSOUT=*
+//APIUSER  DD *
+//APIFILE  DD *
+)SEND
+  DEST    ALEJANDRO.GARCIAMANZANEQUE@SERVEXTERNOS.GRUPOSANTANDER.COM
+  DEST    ROBERTO.M.UCERO@ACCENTURE.COM
+  DEST    JANDAVILA@GRUPOSANTANDER.COM.MX
+  DEST    FMGARCIAFR@GRUPOSANTANDER.COM.MX
+  TITLE   VALORES DE LOS SEQUENCE PRE-MX  %%ODATE
+  LINESIZE 167
+  OPTION  FORCE
+  MEMO APIMEMO
+  FILE PRE_SEQUENCE_%%$ODATE.CSV ORG.BTO.LR.GRVTY.SEQUENCE.PRE.F%%ODATE
+)END
+/*
+//*
+//* ******************************************************************
+//* ENVIO DE ARCHIVO  DATOS
+//* ******************************************************************
+//P003D004 EXEC PGM=COZBATCH,
+//         COND=(4,LT)
+//STEPLIB  DD DSN=COZ.LOADLIB,DISP=SHR
+//SYSOUT   DD DSN=ORG.DB2.MXG.SEQUENCE.L1.D%%ODATE,
+//            DISP=(NEW,CATLG,DELETE),
+//            UNIT=SYSDA,SPACE=(TRK,(3,15),RLSE),
+//            DCB=(LRECL=256,RECFM=FB,BLKSIZE=0)
+//STDIN DD *
+ s="srgvfilo21mxr09.ilm.pre.mx.corp"
+ ds="ORG.GRISB.STCCTMC.NETRC.DATA"
+ echo $s
+ user=$(awk -v s2=$s ' toupper($2)==toupper(s2) {print $4}' "//'$ds'")
+ user=$(echo $user]awk '{ print $1 }' )
+ echo $user
+ cozsftp  -b-   $user@$s  <<EOB
+ lzopts mode=binary
+ cd /gravity/presanmex/migration/descarga
+ PWD
+ ASCII
+ PUT //ORG.BTO.LR.GRVTY.SEQUENCE.PRE.F%%ODATE    \
+     SEQUENCE_%%ODATE.CSV
+EOB
+//*
+//********************************************************************
+//* OBJETIVO: VERIFICAR TRANSMISION                                  *
+//********************************************************************
+//SFTPUT02  EXEC PGM=IKJEFT1A,
+//             DYNAMNBR=150,COND=(4,LT)
+//STEPCLIS  INCLUDE MEMBER=STEPCLIS
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//ARGUM     DD DSN=ORG.GRISB.PARMLIB(FTPOKEY),
+//             DISP=SHR
+//INPUT     DD DSN=ORG.DB2.MXG.SEQUENCE.L1.D%%ODATE,
+//             DISP=SHR
+//SYSTSIN   DD *
+ REXXFIND
+------------------------------------------------------------------------------
+
+@@@STATJCLD
+19:05h MEX
+
+------------------------------------------------------------------------------
+//*CTM9220* DATA ADDED BY CONTROL-M  - DO NOT CHANGE!
+//*CTM9220* SOURCE JCL LIB: ORG.GRISB.JCL.GRAVITY
+//*CTM9220* END OF DATA ADDED BY CONTROL-M
+//STATJCLD JOB 101,'RENAME FIC.',REGION=0M,
+//         MSGLEVEL=(1,1),MSGCLASS=X,CLASS=9
+//*
+//* ************************************************** *
+//* %%INCLIB CICSG.PARAMLIB.CTM %%INCMEM INCGLOB
+//* %%LIBSYM CICSG.PARAMLIB.CTM %%MEMSYM GLOBALA
+//* ************************************************** *
+//JOBLIB   DD  DSN=CICSG.PGMBATCH,
+//             DISP=SHR
+//*   %%INCLIB CICSG.PROCLIB %%INCMEM LIBPARTE
+//*
+//*
+//REPOSIT  JCLLIB ORDER=CICSG.PROCLIB.PROD
+//*
+//**********************************************************************
+//*
+//* %%SET %%PREFDSN = ORG.BTO.LR
+//*
+//*  %%SET %%FECH2 = %%$OYEAR-%%OMONTH-%%ODAY
+//*  %%SET %%FECHA = %%$OYEAR-%%OMONTH-%%ODAY
+//*   %%SET %%FEC = %%$WCALC %%$ODATE -1 ALLDAYS
+//*   %%SET %%AA = %%SUBSTR %%FEC 1 4
+//*   %%SET %%MM = %%SUBSTR %%FEC 5 2
+//*   %%SET %%DD = %%SUBSTR %%FEC 7 2
+//******************************************************************
+//* ENCUENTRA MODIF A TABLAS ENTRE EL TS INICIAL INDICADO
+//*  Y EL TS FIN GRABADO EN LAS RTS DEL DB2
+//* CON LO CUAL HAY QUE ESPERAR QUE SE VUELQUEN DICHAS RTS
+//*   PARA PASAR POSTERIORMENTE UN SNAPSHOT DE ELLAS
+//******************************************************************
+//* TAMBIEN RECOGE MODIFICACIONES (LOAD / RECOVER )
+//*   GRABADAS EN LA SYSCOPY
+//******************************************************************
+//**
+//DELETE   EXEC PGM=IDCAMS
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+  DEL %%PREFDSN.GRVTY.STATLAST.PRE.F%%ODATE
+  DEL ORG.DB2.MXG.STATJCLD.L1.D%%ODATE
+  SET MAXCC = 0
+  SET LASTCC = 0
+/*
+//********************************************************************
+//UNLOAD EXEC PGM=ADUUMAIN,
+//         PARM=(DB0G,'%%JOBNAME','NEW')
+//STEPLIB  DD DSN=BMC.MXG1.LOAD,DISP=SHR
+//SYSUDUMP DD SYSOUT=*
+//SYSPRINT DD SYSOUT=*
+//UTPRINT  DD SYSOUT=*
+//SYSREC   DD DSN=%%PREFDSN.GRVTY.STATLAST.PRE.F%%ODATE,
+//            UNIT=SYSDA,
+//            SPACE=(TRK,(10,16),RLSE),
+//            DISP=(NEW,CATLG,DELETE)
+//SYSCNTL  DD DUMMY
+//SYSIN    DD   *
+UNLOAD DIRECT NO
+   FORMAT CSV TERMINATEDBY ';' ENCLOSEDBY '' AND '' NULLSTRING ''
+   UNLOADDN SYSREC ACTIVE NO
+   CNTLCARDS
+SELECT
+   SUBSTR(T.CREATOR, 1, 10)    AS CREATOR
+  ,SUBSTR(T.DBNAME, 1, 10)     AS DBNAME
+  ,SUBSTR(T.TSNAME, 1, 10)     AS TSNAME
+  ,SUBSTR(T.NAME, 1, 30)       AS TABLE
+  ,T.DATACAPTURE               AS CDC
+  ,DEC(T.CARDF)                AS ROWS
+  ,SUM(S.TOTALROWS)            AS ROWS_RT
+  ,T.RECLENGTH                 AS RCLEN
+  ,T.AVGROWLEN                 AS AVRCLEN
+  ,MAX(COALESCE(S.LASTDATACHANGE,'0001-01-01-00.00.00.000000'))
+               AS LAST_DATA_CHANGE
+  ,T.STATSTIME                 AS LAST_RUNSTATS
+  ,DEC(T.NPAGES) AS PAGES
+  ,DEC(T.NPAGESF) AS USED_PAGES
+  ,SUM(W.PGSIZE) AS PAGESIZE
+  FROM SYSIBM.SYSTABLES T
+      ,SYSIBM.SYSTABLESPACESTATS S
+      ,SYSIBM.SYSTABLESPACE W
+WHERE T.TYPE = 'T'
+AND T.CREATOR IN ('CICSG','ORG01')
+  AND (S.DBNAME,S.NAME) = (T.DBNAME,T.TSNAME)
+AND (S.DBNAME,S.NAME) = (W.DBNAME,W.NAME)
+GROUP BY  T.CREATOR
+         ,T.DBNAME
+         ,T.TSNAME
+         ,T.NAME,DEC(T.CARDF)
+         ,T.RECLENGTH
+         ,T.AVGROWLEN
+         ,T.STATSTIME
+         ,T.DATACAPTURE
+         ,T.NPAGES
+         ,T.NPAGESF
+WITH UR
+/*
+//*
+//MEMO01 EXEC PGM=XX0MEMO,COND=(0,NE)
+//SYSOUT   DD SYSOUT=*
+//APIUSER  DD *
+//APIFILE  DD *
+)SEND
+  DEST    ALEJANDRO.GARCIAMANZANEQUE@SERVEXTERNOS.GRUPOSANTANDER.COM
+  DEST    ROBERTO.M.UCERO@ACCENTURE.COM
+  DEST    JANDAVILA@GRUPOSANTANDER.COM.MX
+  DEST    FMGARCIAFR@GRUPOSANTANDER.COM.MX
+  DEST    ruben.aldea@servexternos.gruposantander.com
+  DEST    fernanda.barojas@servexternos.gruposantander.com
+  DEST    saulel.gamboa@servexternos.gruposantander.com
+  DEST    albert.marques@servexternos.gruposantander.com
+  DEST    francisco.delgadomartinez@servexternos.gruposantander.com
+  TITLE   RELACION TABLAS LASTCHANGE PRE-MX  %%ODATE
+  LINESIZE 167
+  OPTION  FORCE
+  MEMO APIMEMO
+  FILE PRE_LASTCHS_%%$ODATE.CSV %%PREFDSN.GRVTY.STATLAST.PRE.F%%ODATE
+)END
+/*
+//*
+//* ******************************************************************
+//* ENVIO DE ARCHIVO  DATOS
+//* ******************************************************************
+//P003D004 EXEC PGM=COZBATCH,
+//         COND=(4,LT)
+//STEPLIB  DD DSN=COZ.LOADLIB,DISP=SHR
+//SYSOUT   DD DSN=ORG.DB2.MXG.STATJCLD.L1.D%%ODATE,
+//            DISP=(NEW,CATLG,DELETE),
+//            UNIT=SYSDA,SPACE=(TRK,(3,15),RLSE),
+//            DCB=(LRECL=256,RECFM=FB,BLKSIZE=0)
+//STDIN DD *
+ s="srgvfilo21mxr09.ilm.pre.mx.corp"
+ ds="ORG.GRISB.STCCTMC.NETRC.DATA"
+ echo $s
+ user=$(awk -v s2=$s ' toupper($2)==toupper(s2) {print $4}' "//'$ds'")
+ user=$(echo $user]awk '{ print $1 }' )
+ echo $user
+ cozsftp  -b-   $user@$s  <<EOB
+ lzopts mode=binary
+ cd /gravity/presanmex/migration/descarga
+ PWD
+ ASCII
+ PUT //%%PREFDSN.GRVTY.STATLAST.PRE.F%%ODATE     \
+     LASTCHS_D%%ODATE.csv
+EOB
+//*
+//********************************************************************
+//* OBJETIVO: VERIFICAR TRANSMISION                                  *
+//********************************************************************
+//SFTPUT02  EXEC PGM=IKJEFT1A,
+//             DYNAMNBR=150,COND=(4,LT)
+//STEPCLIS  INCLUDE MEMBER=STEPCLIS
+//SYSTSPRT  DD SYSOUT=*
+//SYSPRINT  DD SYSOUT=*
+//ARGUM     DD DSN=ORG.GRISB.PARMLIB(FTPOKEY),
+//             DISP=SHR
+//INPUT     DD DSN=ORG.DB2.MXG.STATJCLD.L1.D%%ODATE,
+//             DISP=SHR
+//SYSTSIN   DD *
+ REXXFIND
+------------------------------------------------------------------------------
+
