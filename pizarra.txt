@@ -1,12 +1,1 @@
-MPDT072
-BGDTPEN
-BGDTUMO
-BGDTMAE
-BGDTLIQ
-BGDTAUX
-LMDTCDP
-MPDT009
-MPDT007
-  
 
-https://urldefense.com/v3/__https://santandernet.sharepoint.com/:x:/r/sites/MainframeSQLOffloadingMxico/Shared*20Documents/General/Mainframe*20SQL*20Offloading/600.Migration/650.*20Plan*20refresh/Plan*20Carga*20Tablas*20Adicionales*20-*20Batch*2009-oct-24.xlsx?d=wed2e0443cc984a3bb851df7aff395976&csf=1&web=1&e=5UCg94__;JSUlJSUlJSUlJSU!!OrxsNty6D4my!_7fPb9xRP96nNPAoRFezsPSfn3vI_5IAa5t28ZLZ8ii_gsw4GRRMUBMBRRdkY659Ph1djy-ogHJ2WyvF0YJ76xBS075qW3aWlqfV2g$
