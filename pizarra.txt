@@ -1,5 +1,1 @@
-•	Controlm PRE: https://srcmtilm1mxr202.pre.mx.corp:8443/ControlM/
-•	Controlm PRO: https://srvcmtlpvlmx01.mx.corp:8443/ControlM/
-•	Mainframe PRE MEX: mxg1.mx.bsch (Puerto 23)
-•	OEM: https://srgvfplo20mxr01.ilm.mx.corp:7803/em
 
